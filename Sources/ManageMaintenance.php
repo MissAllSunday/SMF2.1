@@ -2022,12 +2022,19 @@ function list_integration_hooks()
 function get_files_recursive($dir_path)
 {
 	$files = array();
+	$exclude_folders = array(
+		'minify',
+		'random_compat',
+		'ReCaptcha',
+		'tasks',
+		'.git',
+	);
 
 	if ($dh = opendir($dir_path))
 	{
 		while (($file = readdir($dh)) !== false)
 		{
-			if ($file != '.' && $file != '..')
+			if ($file != '.' && $file != '..' && !in_array($file, $exclude_folders))
 			{
 				if (is_dir($dir_path . '/' . $file))
 					$files = array_merge($files, get_files_recursive($dir_path . '/' . $file));
