@@ -2028,6 +2028,7 @@ function get_files_recursive($dir_path)
 		'ReCaptcha',
 		'tasks',
 		'.git',
+		'vendor',
 	);
 
 	if ($dh = opendir($dir_path))
@@ -2038,8 +2039,13 @@ function get_files_recursive($dir_path)
 			{
 				if (is_dir($dir_path . '/' . $file))
 					$files = array_merge($files, get_files_recursive($dir_path . '/' . $file));
+
 				else
-					$files[] = array('dir' => $dir_path, 'name' => $file);
+					$files[] = array(
+						'dir' => $dir_path,
+						'name' => $file,
+						'size' => filesize($dir_path . '/' . $file)
+					);
 			}
 		}
 	}
@@ -2071,11 +2077,11 @@ function get_integration_hooks_data($start, $per_page, $sort)
 		{
 			if (is_file($file['dir'] . '/' . $file['name']) && substr($file['name'], -4) === '.php')
 			{
-				if (filesize($file['dir'] . '/' . $file['name']) <= 0)
+				if ($file['size'] <= 0)
 					continue;
 
 				$fp = fopen($file['dir'] . '/' . $file['name'], 'rb');
-				$fc = fread($fp, filesize($file['dir'] . '/' . $file['name']));
+				$fc = fread($fp, $file['size']);
 				fclose($fp);
 
 				foreach ($temp_hooks as $hook => $allFunctions)
@@ -2087,11 +2093,20 @@ function get_integration_hooks_data($start, $per_page, $sort)
 
 						if (substr($hook, -8) === '_include')
 						{
-							$hook_status[$hook][$hookParsedData['pureFunc']]['exists'] = file_exists(strtr(trim($rawFunc), array('$boarddir' => $boarddir, '$sourcedir' => $sourcedir, '$themedir' => $settings['theme_dir'])));
+							$hook_status[$hook][$hookParsedData['pureFunc']]['exists'] = file_exists(strtr(trim($rawFunc), array(
+								'$boarddir' => $boarddir,
+								'$sourcedir' => $sourcedir,
+								'$themedir' => $settings['theme_dir']
+							)));
+
 							// I need to know if there is at least one function called in this file.
-							$temp_data['include'][$hookParsedData['pureFunc']] = array('hook' => $hook, 'function' => $hookParsedData['pureFunc']);
+							$temp_data['include'][$hookParsedData['pureFunc']] = array(
+								'hook' => $hook,
+								'function' => $hookParsedData['pureFunc']);
+
 							unset($temp_hooks[$hook][$rawFunc]);
 						}
+
 						elseif (strpos(str_replace(' (', '(', $fc), 'function ' . trim($hookParsedData['pureFunc']) . '(') !== false)
 						{
 							$hook_status[$hook][$hookParsedData['pureFunc']] = $hookParsedData;
@@ -2104,6 +2119,7 @@ function get_integration_hooks_data($start, $per_page, $sort)
 
 							// I want to remember all the functions called within this file (to check later if they are enabled or disabled and decide if the integrare_*_include of that file can be disabled too)
 							$temp_data['function'][$file['name']][$hookParsedData['pureFunc']] = $hookParsedData['enabled'];
+
 							unset($temp_hooks[$hook][$rawFunc]);
 						}
 					}
