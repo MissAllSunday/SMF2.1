@@ -2071,6 +2071,9 @@ function get_integration_hooks_data($start, $per_page, $sort)
 		{
 			if (is_file($file['dir'] . '/' . $file['name']) && substr($file['name'], -4) === '.php')
 			{
+				if (filesize($file['dir'] . '/' . $file['name']) <= 0)
+					continue;
+
 				$fp = fopen($file['dir'] . '/' . $file['name'], 'rb');
 				$fc = fread($fp, filesize($file['dir'] . '/' . $file['name']));
 				fclose($fp);
