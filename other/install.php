@@ -264,6 +264,10 @@ function initialize_inputs()
 		exit;
 	}
 
+	$getCorrectType = function (string $key) {
+		return ($key === 'mysqli') ? 'mysql' : $key;
+	};
+
 	// This is really quite simple; if ?delete is on the URL, delete the installer...
 	if (isset($_GET['delete']))
 	{
@@ -276,8 +280,7 @@ function initialize_inputs()
 
 			foreach ($databases as $key => $dummy)
 			{
-				$type = ($key == 'mysqli') ? 'mysql' : $key;
-				$ftp->unlink('install_' . DB_SCRIPT_VERSION . '_' . $type . '.sql');
+				$ftp->unlink('install_' . DB_SCRIPT_VERSION . '_' . $getCorrectType($key) . '.sql');
 			}
 
 			$ftp->close();
@@ -290,8 +293,8 @@ function initialize_inputs()
 
 			foreach ($databases as $key => $dummy)
 			{
-				$type = ($key == 'mysqli') ? 'mysql' : $key;
-				@unlink(dirname(__FILE__) . '/install_' . DB_SCRIPT_VERSION . '_' . $type . '.sql');
+				@unlink(dirname(__FILE__) . '/install_' . DB_SCRIPT_VERSION . '_' .
+					$getCorrectType($key) . '.sql');
 			}
 		}
 
