@@ -73,8 +73,10 @@ $databases = array(
 		'version' => '10.2.0',
 		'version_check' => function() {
 			global $db_connection;
+
 			if (!function_exists('mysqli_fetch_row'))
 				return false;
+
 			return mysqli_fetch_row(mysqli_query($db_connection, 'SELECT VERSION();'))[0];
 		},
 		'supported' => function() {
@@ -95,10 +97,14 @@ $databases = array(
 		{
 			return true;
 		},
-		'utf8_version' => '10.2.0',
+		'utf8_version' => '10.6.0',
 		'utf8_version_check' => function() {
 			global $db_connection;
-			return mysqli_get_server_info($db_connection);
+
+			if (!function_exists('mysqli_fetch_row'))
+				return false;
+
+			return mysqli_fetch_row(mysqli_query($db_connection, 'SELECT VERSION();'))[0] ?? '';
 		},
 		'alter_support' => true,
 		'validate_prefix' => function(&$value)
@@ -1044,10 +1050,10 @@ function ForumSettings()
 		{
 			$row = $smcFunc['db_fetch_assoc']($result);
 			if ($row['standard_conforming_strings'] !== 'on')
-				{
-					$incontext['continue'] = 0;
-					$incontext['error'] = $txt['error_pg_scs'];
-				}
+			{
+				$incontext['continue'] = 0;
+				$incontext['error'] = $txt['error_pg_scs'];
+			}
 			$smcFunc['db_free_result']($result);
 		}
 	}
@@ -2409,7 +2415,7 @@ function template_forum_settings()
 			<dt>', $txt['force_ssl'], ':</dt>
 			<dd>
 				<input type="checkbox" name="force_ssl" id="force_ssl"', $incontext['ssl_chkbx_checked'] ? ' checked' : '',
-					$incontext['ssl_chkbx_protected'] ? ' disabled' : '', '>
+	$incontext['ssl_chkbx_protected'] ? ' disabled' : '', '>
 				<label for="force_ssl">', $txt['force_ssl_label'], '</label>
 				<div class="smalltext"><strong>', $txt['force_ssl_info'], '</strong></div>
 			</dd>
